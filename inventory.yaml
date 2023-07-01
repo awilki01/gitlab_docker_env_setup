@@ -1,0 +1,13 @@
+[controlnodes]
+linux-mint  ansible_host=mint.mylab.com
+
+
+[all:vars]
+ansible_connection=ssh
+ansible_user=adam
+ansible_ssh_pass=xxxxxxxxxxxxx
+
+
+
+
+

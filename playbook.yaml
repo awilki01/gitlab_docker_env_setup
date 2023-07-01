@@ -1,0 +1,66 @@
+- hosts: all
+  tasks:
+
+    - name: Create Docker Network
+      ansible.builtin.docker_network:
+        name: Services
+      become: yes
+
+    - name: Ensure Gitlab root directory on host
+      file:
+        state: directory
+        owner: 1000
+        group: 1000
+        path: /srv/gitlab
+      become: yes
+      # Ensure GITLAB_HOME env variable points to path
+      # https://docs.gitlab.com/ee/install/docker.html
+
+    - name: Ensure Gitlab config directory on host
+      file:
+        state: directory
+        owner: 1000
+        group: 1000
+        path: /srv/gitlab/config
+      become: yes
+
+    - name: Ensure Gitlab logs directory on host
+      file:
+        state: directory
+        owner: 1000
+        group: 1000
+        path: /srv/gitlab/logs
+      become: yes
+
+    - name: Ensure Gitlab data directory on host
+      file:
+        state: directory
+        owner: 1000
+        group: 1000
+        path: /srv/gitlab/data
+      become: yes
+
+    - name: Create Gitlab Container
+      docker_container:
+        name: gitlab-ce
+        hostname: gitlab.mylab.com
+        image: gitlab/gitlab-ce:latest
+        networks:
+          - name: Services
+            aliases:
+              - services_net
+        published_ports:
+          - "8443:443"
+          - "8080:80"
+          - "2022:22"
+        volumes:
+          - /srv/gitlab/config:/etc/gitlab
+          - /srv/gitlab/logs:/var/log/gitlab
+          - /srv/gitlab/data:/var/opt/gitlab
+        state: started
+        restart_policy: always
+        recreate: no
+      become: yes
+
+# You have to get initial root password. Username 'root':
+# sudo docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password
